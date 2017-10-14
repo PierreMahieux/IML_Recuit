@@ -43,14 +43,19 @@ public class Windaube extends JFrame {
 		panel = new Panel();
 		
 		setContentPane(panel);
-		double t0 = setup();
-		go();
-		
-		System.out.println("-----------------\nscore FINAL : " + panel.pathCost() + "\ntemp0: " + t0);
+		for (int i = 0; i < 3; i++) {
+			double costInit = panel.pathCost();
+			double t0 = setup();
+			int rounds = go();
+			System.out.println("----------\nscore Initial : " + costInit + "\nscore FINAL : " + panel.pathCost() + "\nt0: " + t0
+					+ "\ntFinal : " + panel.temperature + "\nrounds count : " + rounds);
+			panel.randomConfig();
+		}
 	}
 
-	public void go() {
+	public int go() {
 		int noChangeCount = 0;
+		int numRounds = 0;
 		do {
 			if (!panel.simulatedAnnealing()) {
 				noChangeCount++;
@@ -60,13 +65,15 @@ public class Windaube extends JFrame {
 			}
 			repaint();
 			try {
-				Thread.sleep(150);
+				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-//			System.out.println("-----------------\ntempérature : " + panel.temperature + "\nscore : " + panel.pathCost());
+			numRounds ++;
 		} while (panel.temperature > 1 && noChangeCount < 5);
+		
+		return numRounds;
 	}
 	
 	public double setup() {
@@ -75,14 +82,16 @@ public class Windaube extends JFrame {
 		double sigma0 = 0.5;
 		
 		for (int i = 0; i < 100; i++) {
-			panel.change(panel.randomCity());
+			City[] randomCities = panel.getTwoNonConsecutiveRandomCities();
+			panel.change(randomCities);
 			deltaE += panel.pathCost();
+			panel.change(randomCities);
 		}
 		
 		deltaE /= 100;
 		temp0 = -deltaE/Math.log(sigma0);
 		
-		panel.temperature = (int)temp0;
+		panel.temperature = temp0;
 		return temp0;
 	}
 }

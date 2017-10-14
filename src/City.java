@@ -4,10 +4,10 @@ public class City {
 	private int posX, posY;
 	private City precCity, nextCity;
 	
-	public City getPrecCity() {
+	public City getPrevCity() {
 		return precCity;
 	}
-	public void setPrecCity(City precCity) {
+	public void setPrevCity(City precCity) {
 		this.precCity = precCity;
 	}
 	public City getNextCity() {
@@ -34,17 +34,16 @@ public class City {
 		posX = x; posY = y;
 	}
 	
-	
-	public void linkPrecCity(City city) {
+	public void linkPrevCity(City city) {
 		// TODO Auto-generated method stub
-		this.setPrecCity(city);
+		this.setPrevCity(city);
 		city.setNextCity(this);
 	}
 	
 	public void linkNextCity(City city) {
 		// TODO Auto-generated method stub
 		this.setNextCity(city);
-		city.setPrecCity(this);
+		city.setPrevCity(this);
 	}
 	
 	public double distanceToNextCity() {
