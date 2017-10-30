@@ -43,11 +43,11 @@ public class Windaube extends JFrame {
 		panel = new Panel();
 		
 		setContentPane(panel);
-		for (int i = 0; i < 3; i++) {
-			double costInit = panel.pathCost();
+		for (int i = 0; i < 1; i++) {
+			double costInit = panel.pathCost(panel.cities);
 			double t0 = setup();
 			int rounds = go();
-			System.out.println("----------\nscore Initial : " + costInit + "\nscore FINAL : " + panel.pathCost() + "\nt0: " + t0
+			System.out.println("----------\nscore Initial : " + costInit + "\nscore FINAL : " + panel.pathCost(panel.cities) + "\nt0: " + t0
 					+ "\ntFinal : " + panel.temperature + "\nrounds count : " + rounds);
 			panel.randomConfig();
 		}
@@ -56,6 +56,9 @@ public class Windaube extends JFrame {
 	public int go() {
 		int noChangeCount = 0;
 		int numRounds = 0;
+		
+		panel.optPath = panel.cities;
+		
 		do {
 			if (!panel.simulatedAnnealing()) {
 				noChangeCount++;
@@ -80,17 +83,17 @@ public class Windaube extends JFrame {
 		double deltaE = 0;
 		double temp0;
 		double sigma0 = 0.5;
+		double costInit = panel.pathCost(panel.cities);
 		
 		for (int i = 0; i < 100; i++) {
 			City[] randomCities = panel.getTwoNonConsecutiveRandomCities();
 			panel.change(randomCities);
-			deltaE += panel.pathCost();
+			deltaE += Math.abs(panel.pathCost(panel.cities) - costInit);
 			panel.change(randomCities);
 		}
 		
 		deltaE /= 100;
 		temp0 = -deltaE/Math.log(sigma0);
-		
 		panel.temperature = temp0;
 		return temp0;
 	}

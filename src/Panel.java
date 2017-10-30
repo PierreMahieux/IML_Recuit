@@ -7,16 +7,17 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class Panel extends JPanel{
 
-	static final int NUMBER_OF_CITIES = 20;
+	static final int NUMBER_OF_CITIES = 100;
 	static final double COOLING_COEFF = 0.97;
 	static final int HEIGHT_CHART = 300;
 	static final int WIDTH_CHART = 500;
+	static final int MAX_CONST_TEMP_CHANGE = NUMBER_OF_CITIES*NUMBER_OF_CITIES/4;
+	static final int MAX_NEW_STATE = 100;
 	
 	public double temperature = 200000; 
 	public ArrayList<City> cities = new ArrayList<>();
+	public ArrayList<City> optPath = new ArrayList<>();
 	public ArrayList<Double> pathCostMemory = new ArrayList<Double>();
-//	public ArrayList<Double> temperatureMemory = new ArrayList<Double>();
-//	public ArrayList<Double> deltaCostMemory = new ArrayList<Double>();
 	
 	public int graphXOrigins, graphYOrigins;
 	
@@ -52,23 +53,25 @@ public class Panel extends JPanel{
 	}
 	
 	public boolean simulatedAnnealing() {
-		double cost = pathCost();
+		double cost = pathCost(cities);
 		double newCost = 0;
 		double deltaCost = 0;
 		double proba = 1;
 		boolean hasChanged = false;
 		int steps = 0;
+		int newConf = 0;
 		City[] randomCities = new City[2];
 		
 		do {
 			randomCities = getTwoNonConsecutiveRandomCities();
 			change(randomCities);
-			newCost = pathCost();
+			newCost = pathCost(cities);
 			deltaCost = newCost - cost;
 			if (deltaCost > 0) {
 				proba = Math.exp(-deltaCost / temperature);
 				if (proba > Math.random()) {
 					hasChanged = true;
+					newConf ++;
 				}
 				else {
 					change(randomCities);
@@ -76,13 +79,17 @@ public class Panel extends JPanel{
 			}
 			else {
 				hasChanged = true;
+				newConf ++;
+				if(newCost < pathCost(optPath)){
+					optPath = clonePath(cities);
+				}
 			}
 			
 			steps ++;
-		} while (!hasChanged && steps < NUMBER_OF_CITIES*NUMBER_OF_CITIES/4);
+		} while (steps < MAX_CONST_TEMP_CHANGE && newConf < MAX_NEW_STATE);
 		
 		temperature *= COOLING_COEFF;
-		pathCostMemory.add(pathCost());
+		pathCostMemory.add(pathCost(cities));
 		
 		return hasChanged;
 	}
@@ -125,10 +132,10 @@ public class Panel extends JPanel{
 		}
 	}
 	
-	public double pathCost() {
+	public double pathCost(ArrayList<City> path) {
 		double cost = 0;
 		
-		for(City city : cities) {
+		for(City city : path) {
 			cost += city.distanceToNextCity();
 		}
 		return cost;
@@ -143,24 +150,8 @@ public class Panel extends JPanel{
 		return cities;
 	}
 	
-	public void change(City startCity) {
-		City[] randomTities = new City[4];
-		
-		randomTities[0] = startCity;
-		
-		for (int i = 1; i < randomTities.length; i++) {
-			randomTities[i] = randomTities[i-1].getNextCity();
-		}
-		
-		randomTities[0].linkNextCity(randomTities[2]);
-		randomTities[1].linkNextCity(randomTities[3]);
-		randomTities[2].linkNextCity(randomTities[1]);
-	}
 	
 	public void change(City[] cities){
-//		ArrayList<String> lines = new ArrayList<>();
-//		lines.add("----------");lines.add("BEFORE");lines.add("first city  : " + cities[0] + "; next : " + cities[0].getNextCity() + "; prev : " + cities[0].getPrecCity()); lines.add("second city : " + cities[1] + "; next : " + cities[1].getNextCity() + "; prev : " + cities[1].getPrecCity());
-		
 		City precStartCity = cities[0].getPrevCity();
 		City nextStartCity = cities[0].getNextCity();
 		
@@ -169,18 +160,19 @@ public class Panel extends JPanel{
 		
 		cities[1].linkNextCity(nextStartCity);
 		cities[1].linkPrevCity(precStartCity);
-		
-//		lines.add("AFTER");lines.add("first city  : " + cities[0] + "; next : " + cities[0].getNextCity() + "; prev : " + cities[0].getPrecCity()); lines.add( "second city : " + cities[1] + "; next : " + cities[1].getNextCity() + "; prev : " + cities[1].getPrecCity());
-//		Path file = Paths.get("log.txt");
-//		try {
-//			Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 	
 	public City randomCity() {
 		return cities.get((int)(Math.random()*cities.size()));
+	}
+	
+	public ArrayList<City> clonePath(ArrayList<City> pathSrc){
+		ArrayList<City> pathDst = new ArrayList<>();
+		
+		for(City city : pathSrc){
+			pathDst.add(new City(city));
+		}
+		
+		return pathDst;
 	}
 }

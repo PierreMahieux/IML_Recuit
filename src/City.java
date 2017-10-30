@@ -34,6 +34,13 @@ public class City {
 		posX = x; posY = y;
 	}
 	
+	public City(City src){
+		this.posX = src.posX;
+		this.posY = src.posY;
+		this.precCity = src.precCity;
+		this.nextCity = src.nextCity;
+	}
+	
 	public void linkPrevCity(City city) {
 		// TODO Auto-generated method stub
 		this.setPrevCity(city);
